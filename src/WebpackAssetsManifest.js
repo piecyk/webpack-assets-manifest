@@ -130,24 +130,15 @@ class WebpackAssetsManifest
     // compilation.assets contains the results of the build
     // compiler.hooks.compilation.tap(PLUGIN_NAME, this.handleCompilation.bind(this));
 
-    const isCss = (s) => /^.*\.css$/.test(s);
-    const MINI_EXTRACT_CSS_LOADER_MODULE_TYPE = 'css/mini-extract';
-
-    compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) =>
+    compiler.hooks.compilation.tap(PLUGIN_NAME, compilation =>
       compilation.hooks.normalModuleLoader.tap(
         PLUGIN_NAME,
         (loaderContext, module) => {
           const emitFile = loaderContext.emitFile;
-          const identifier = module.identifier();
-          // TODO: check this, basic we want to skip updating `assetNames` cache
-          // when using `css/mini-extract`
-          const isValid =
-            loaderContext[MINI_EXTRACT_CSS_LOADER_MODULE_TYPE] !== undefined
-              ? !isCss(identifier)
-              : true;
 
           loaderContext.emitFile = (name, content, sourceMap) => {
-            if (isValid) {
+            const identifier = module.identifier();
+            if (path.extname(name) === path.extname(identifier)) {
               const originalName = path.join(
                 path.dirname(name),
                 path.basename(identifier)
